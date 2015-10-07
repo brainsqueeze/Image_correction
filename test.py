@@ -1,4 +1,4 @@
-from correct import CorrectImage
+from src.correct import CorrectImage
 
 pic = CorrectImage('data/')
 pic.detect_edges('initial.png')
