@@ -1,7 +1,7 @@
 #  __author__ = 'Dave'
 import cv2
 from skimage import io
-from skimage.transform import hough_transform, probabilistic_hough_line
+from skimage.transform import probabilistic_hough_line
 
 import matplotlib.pyplot as plt
 
