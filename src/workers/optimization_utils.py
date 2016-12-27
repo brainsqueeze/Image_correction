@@ -121,20 +121,4 @@ def health(population, metric='L2', order=1):
         v = np.array(v)
         return np.sqrt(np.dot(v, v)) / float(len(v))
     elif metric == 'arc_length':
-        # find shortest unit arc length which passes through all unit circle points defined the population of
-        # angles as well as passing through theta = 0.
-
-        # min_arc = 2 * np.pi
-        # population = sorted(population, reverse=True)
-        # pop_try = population[:]
-        # for i in xrange(len(population)):
-        #     top = pop_try.pop(0)
-        #     pop_try.append(top)
-        #     # pop_try = translate(population, i)
-        #     delta_s = sum(abs(np.diff(pop_try)))
-        #     if delta_s < min_arc:
-        #         min_arc = delta_s
-
-        min_arc = min_arc_length(population)
-
-        return min_arc
+        return min_arc_length(population)

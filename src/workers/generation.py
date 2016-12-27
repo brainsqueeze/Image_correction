@@ -29,18 +29,18 @@ class Population:
         :param n_parents: (int)
         """
         self.size = len(sample)
-        fitness = [np.pi - abs(val) for val in fitness]
-        probabilities = [val / float(sum(fitness)) for val in fitness]
+        probabilities = np.asarray(fitness)
+        probabilities = np.power(np.cos(probabilities), 2)
+        probabilities /= probabilities.sum()
+
         idx, ind = 0, []
+
         for _ in xrange(n_parents):
-            idx = int(self.size * np.random.random())
-            if np.random.random() < float(probabilities[idx] / max(probabilities)):
+            r = np.random.random()
+            idx = int(self.size * r)
+            if r < float(probabilities[idx] / max(probabilities)):
                 ind.append(idx)
-            # while True:
-            #     idx = int(self.size * np.random.random())
-            #     if np.random.random() < float(probabilities[idx] / max(probabilities)):
-            #         break
-            # ind.append(idx)
+
         pop = sample[ind]
 
         self.father = pop[:n_parents / 2]
