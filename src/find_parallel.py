@@ -1,5 +1,6 @@
 from workers.correct import CorrectImage
-from workers.optimize import loss, health, Population
+from workers.optimization_utils import loss, health
+from workers.generation import Population
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -58,6 +59,16 @@ def main():
 
         if _ % 100 == 0:
             print "Generation {0} health: \t{1}".format(_, pop_health), total / (_ + 1)
+
+            plt.clf()
+            x = np.arange(0, 1.01, 0.01)
+            plt.scatter(np.cos(loss_func), np.sin(loss_func))
+            plt.plot(x, np.sqrt(1 - x ** 2))
+            plt.plot(x, -np.sqrt(1 - x ** 2))
+            plt.xlim((-1.2, 1.2))
+            plt.ylim((-1.2, 1.2))
+            plt.show()
+
             # draw(pair)
 
         if (_ + 1) > 300:
@@ -69,6 +80,8 @@ def main():
     plt.clf()
     plt.plot(range(500), mean)
     plt.savefig('plots/generational_performance.png')
+    plt.xlabel('Generations')
+    plt.ylabel('Loss function')
     plt.show()
 
 if __name__ == '__main__':
