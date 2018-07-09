@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 
 
@@ -29,13 +30,13 @@ class Population:
         :param n_parents: (int)
         """
         self.size = len(sample)
-        probabilities = np.asarray(fitness)
-        probabilities = np.power(np.cos(probabilities), 2)
+        probabilities = fitness
+        probabilities = np.cos(probabilities) ** 2
         probabilities /= probabilities.sum()
 
         idx, ind = 0, []
 
-        for _ in xrange(n_parents):
+        for _ in range(n_parents):
             r = np.random.random()
             idx = int(self.size * r)
             if r < float(probabilities[idx] / max(probabilities)):
@@ -43,8 +44,8 @@ class Population:
 
         pop = sample[ind]
 
-        self.father = pop[:n_parents / 2]
-        self.mother = pop[n_parents / 2:n_parents]
+        self.father = pop[:n_parents // 2]
+        self.mother = pop[n_parents // 2:n_parents]
 
     def add_children(self, mutation, p_mutate=0.01):
         """
@@ -65,7 +66,7 @@ class Population:
                     child = []
                     male = parents[male:]
                     female = parents[:female]
-                    half = len(male) / 2
+                    half = len(male) // 2
 
                     if len(male) > 0 and len(female) > 0:
                         child = np.concatenate((male[half:], female[:half]))

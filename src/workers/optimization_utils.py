@@ -1,4 +1,5 @@
 #  __author__ = 'Dave'
+from __future__ import division
 import numpy as np
 
 
@@ -34,7 +35,8 @@ def min_arc_length(array):
 
     # split circle into 4 quadrants, populate each quadrant depending on incoming value
     # modulo on 2pi is handled to avoid winding numbers
-    for angle in iter(array):
+    for i in range(len(array)):
+        angle = array[i]
         mod_angle = angle % (2 * pi)
 
         if 0 <= mod_angle < pi / 2:
@@ -55,7 +57,7 @@ def min_arc_length(array):
     # get the maximum arc length between adjacent points, for each quadrant respectively
     max_length = max(len(q1), len(q2), len(q3), len(q4))
     l1, l2, l3, l4 = 0, 0, 0, 0
-    for i in xrange(max_length - 1):
+    for i in range(max_length - 1):
         if i + 1 < len(q1):
             d = q1[i + 1] - q1[i]
             l1 = d if d > l1 else l1
@@ -73,7 +75,7 @@ def min_arc_length(array):
 
     # get the max distance between boundary points of the adjacent quadrants
     t = [arr for arr in (q1, q2, q3, q4) if arr]
-    bd = [boundary_separation(t, i) for i in xrange(len(t))]
+    bd = [boundary_separation(t, i) for i in range(len(t))]
     l = max(bd + [l])  # max distance from either boundary points or the max within the quadrants
 
     return (2 * pi) - l
@@ -94,9 +96,12 @@ def loss(m1, m2):
     :param m2: slope of line 2 (float)
     :return: (float)
     """
-    if not type(m1) == np.ndarray or not type(m2) == np.ndarray:
+    if not isinstance(m1, np.ndarray) or not isinstance(m2, np.ndarray):
         raise ValueError('TypeError: m1 and m2 must be numpy arrays.')
-    return np.arctan((m1 / m2) - 1.)
+
+    ratio = m1 / m2
+    ratio[np.isnan(ratio)] = 0
+    return np.arctan(ratio - 1.)
 
 
 def health(population, metric='L2', order=1):
@@ -107,18 +112,17 @@ def health(population, metric='L2', order=1):
     :param order: (float, optional, only used with Minkowski p-adic measure, 1 by default)
     :return: metric space norm of population (float)
     """
-    population = np.array(population)
+    assert isinstance(population, np.ndarray)
+
     if metric == 'L2':
         return np.sqrt(np.dot(population, population))
     elif metric == 'L1':
         return np.sum(abs(population))
     elif metric == 'minkowski':
-        t = np.sum(abs(population)**order)
-        return t**(1. / order)
+        t = np.sum(abs(population) ** order)
+        return t ** (1. / order)
     elif metric == 'vector_length':
-        v = [reduce(lambda x, y: np.cos(x) + np.cos(y), population),
-             reduce(lambda x, y: np.sin(x) + np.sin(y), population)]
-        v = np.array(v)
-        return np.sqrt(np.dot(v, v)) / float(len(v))
+        v = np.array((np.cos(population).sum(), np.sin(population).sum()))
+        return np.sqrt(np.dot(v, v)) / len(v)
     elif metric == 'arc_length':
         return min_arc_length(population)
