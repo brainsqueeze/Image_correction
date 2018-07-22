@@ -7,8 +7,7 @@ from .workers.generation import Population
 import numpy as np
 import matplotlib.pyplot as plt
 
-from skimage.transform import rotate, warp, PiecewiseAffineTransform, AffineTransform
-# import cv2
+from skimage.transform import warp, PiecewiseAffineTransform
 
 
 def evolve(image_class, pop_class, pairs, mutation_probability):
@@ -24,7 +23,11 @@ def evolve(image_class, pop_class, pairs, mutation_probability):
     slopes = image_class.slope(pairs)
     loss_func = loss(m1=slopes[:, 0], m2=slopes[:, 1])
 
-    pop_class.add_parents(pairs, loss_func, 200)
+    pop_class.add_parents(
+        sample=pairs,
+        fitness=loss_func,
+        max_parent_per_capita=0.3
+    )
     pop_class.add_children(mutation=image_class.mutation, p_mutate=mutation_probability)
     pop_slopes = image_class.slope(pop_class.population)
     pop_loss = loss(m1=pop_slopes[:, 0], m2=pop_slopes[:, 1])
@@ -66,19 +69,13 @@ def affine_transform(img):
     print(src[:, 0])
     dst_cols = src[:, 0] - np.sin((src[:, 0] / np.max(src[:, 0])) * np.pi) * np.max(src[:, 0])
     print(dst_cols)
-    # dst_cols *= 1.5
-    # dst_cols -= 1.5 * 50
-    # dst_rows *= 1.5
-    # dst_rows -= 1.5 * 50
+
     dst = np.vstack([dst_cols, dst_rows]).T
 
     tform = PiecewiseAffineTransform()
     tform.estimate(src, dst)
 
-    # out_rows = img.shape[0] - 1.5 * 50
-    # out_cols = cols
     out_rows = rows
-    # out_cols = img.shape[0] - 1.5 * 50
     out_cols = cols
     out = warp(img, tform, output_shape=(out_rows, out_cols))
 
@@ -91,26 +88,13 @@ def affine_transform(img):
 
 
 def main():
-    num_epochs = 1000
+    num_epochs = 10000
     pop = Population()
     pic = CorrectImage()
 
     pic.add_path('data')
     pic.add_image('initial.png')
-
     pic.hough_transform(vary=False, plot=False)  # set vary True to change edge filters, plot True for visualizations
-    # image = pic.image
-    # affine_transform(image)
-
-    # t_form = AffineTransform(shear=0.1)
-    # image_rot = warp(image, t_form)
-
-    # check out PiecewiseAffineTransformation
-
-    # plt.imshow(image_rot)
-    # plt.show()
-    # return False
-
     pair = pic.line_pair(800)
 
     total = 0
@@ -130,7 +114,6 @@ def main():
             # visualize_arc_length(loss_func)
             # draw(pair)
 
-        # if (epoch + 1) > 300:
         count += 1
         avg_angle += abs(np.mean(loss_func))
 
@@ -142,29 +125,6 @@ def main():
     plt.xlabel('Generations')
     plt.ylabel('Loss function')
     plt.savefig('plots/generational_performance.png')
-
-    # image_rot = rotate(image, angle=avg_angle * (180. / np.pi))
-    # plt.imshow(image)
-    # plt.savefig('plots/original.png')
-    # plt.show()
-    #
-    # plt.imshow(image_rot)
-    # plt.savefig('plots/rotated_orig.png')
-    # plt.show()
-    #
-    # mat = np.array([[np.cos(avg_angle), -np.sin(avg_angle), -image.shape[0]/2],
-    #                 [np.sin(avg_angle), np.cos(avg_angle), -image.shape[1]/2],
-    #                 [0, 0, 1]])
-    # t_form = AffineTransform(shear=avg_angle)
-    # image_rot = warp(image, t_form)
-    #
-    # # check out PiecewiseAffineTransformation
-    #
-    # plt.imshow(image_rot)
-    # plt.savefig('plots/rotated_orig_affine.png')
-    # plt.show()
-    #
-    # # draw(pair)
 
 
 if __name__ == '__main__':

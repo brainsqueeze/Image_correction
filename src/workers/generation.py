@@ -1,5 +1,6 @@
 from __future__ import division
 import numpy as np
+from numbers import Number
 
 
 class Population:
@@ -22,30 +23,27 @@ class Population:
         """
         self.children = mutation(self.children, p_mutate)
 
-    def add_parents(self, sample, fitness, n_parents):
+    def add_parents(self, sample, fitness, max_parent_per_capita=1.0):
         """
         Parents are selected according to fitness probability.
         :param sample: (numpy array)
         :param fitness: (array)
-        :param n_parents: (int)
+        :param max_parent_per_capita: (float in interval [0., 1.0])
         """
+
+        assert isinstance(max_parent_per_capita, Number) and 0 <= max_parent_per_capita <= 1.0
         self.size = len(sample)
-        probabilities = fitness
-        probabilities = np.cos(probabilities) ** 2
-        probabilities /= probabilities.sum()
+        max_parent_size = int(max_parent_per_capita * self.size)
 
-        idx, ind = 0, []
+        probabilities = np.cos(fitness) ** 2
+        r = np.random.random(size=self.size)
+        parents = sample[r < probabilities]
 
-        for _ in range(n_parents):
-            r = np.random.random()
-            idx = int(self.size * r)
-            if r < float(probabilities[idx] / max(probabilities)):
-                ind.append(idx)
+        parent_size = min(parents.shape[0], max_parent_size)
+        split = parent_size // 2
 
-        pop = sample[ind]
-
-        self.father = pop[:n_parents // 2]
-        self.mother = pop[n_parents // 2:n_parents]
+        self.father = parents[:split]
+        self.mother = parents[split: parent_size]
 
     def add_children(self, mutation, p_mutate=0.01):
         """
@@ -58,6 +56,9 @@ class Population:
             self.population = np.concatenate((self.father, self.mother))
             parents = np.concatenate((self.father, self.mother))
             parents_length = len(parents)
+
+            if parents_length < 2 or parents_length == self.size:
+                print(self.population)
 
             while len(self.children) < self.size - parents_length:
                 male = np.random.randint(0, parents_length - 1)

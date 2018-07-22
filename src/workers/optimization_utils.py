@@ -12,13 +12,13 @@ def boundary_separation(array, idx):
     :param idx: index of the current array (int)
     :return: (float)
     """
-    l = array[idx]
+    length = array[idx]
     l_next = array[(idx + 1) % len(array)]
 
-    if l_next[0] > l[-1]:
-        return l_next[0] - l[-1]
+    if l_next[0] > length[-1]:
+        return l_next[0] - length[-1]
     else:
-        return l_next[0] - (l[-1] - (2 * np.pi))
+        return l_next[0] - (length[-1] - (2 * np.pi))
 
 
 def min_arc_length(array):
@@ -71,14 +71,14 @@ def min_arc_length(array):
             d = q4[i + 1] - q4[i]
             l4 = d if d > l4 else l4
 
-    l = max(l1, l2, l3, l4)
+    length = max(l1, l2, l3, l4)
 
     # get the max distance between boundary points of the adjacent quadrants
     t = [arr for arr in (q1, q2, q3, q4) if arr]
     bd = [boundary_separation(t, i) for i in range(len(t))]
-    l = max(bd + [l])  # max distance from either boundary points or the max within the quadrants
+    length = max(bd + [length])  # max distance from either boundary points or the max within the quadrants
 
-    return (2 * pi) - l
+    return (2 * pi) - length
 
 
 def translate(arr, n_permute):
@@ -100,8 +100,9 @@ def loss(m1, m2):
         raise ValueError('TypeError: m1 and m2 must be numpy arrays.')
 
     ratio = m1 / m2
-    ratio[np.isnan(ratio)] = 0
-    return np.arctan(ratio - 1.)
+    ratio[m1 == 0] = 0
+    ratio[m2 == 0] = 1e10
+    return np.arctan(ratio - 1)
 
 
 def health(population, metric='L2', order=1):

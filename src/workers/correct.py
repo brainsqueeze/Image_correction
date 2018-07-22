@@ -111,10 +111,13 @@ class CorrectImage(object):
         slopes = np.sum(sign_op * lines, axis=2)
 
         # compute the slopes of each line for every line pair
-        slopes = np.divide(slopes[:, :, 0], slopes[:, :, 1])
+        slopes = slopes[:, :, 0] / slopes[:, :, 1]
 
         # turn infinite values to a finite, but very large value
         slopes[np.isinf(slopes)] = 1e6
+
+        # this catches cases when the line - as defined - is actually a point and the slope doesn't exist
+        slopes[np.isnan(slopes)] = 0
 
         return slopes
 
