@@ -101,22 +101,32 @@ class CorrectImage(object):
         :param lines: array of coordinates (ie. [((x0, y0), (xf, yf)), ...]
         :return: array of slope values with the same number of entries as lines
         """
-        def ratio(dx, dy):
-            run, rise = np.diff(dx), np.diff(dy)
-            if rise == 0:
-                return 0
-            elif run == 0:
-                return 1e6
-            else:
-                return list((rise.astype(float) / run).tolist())[0]
 
-        return [reduce(ratio, zip(*coord)) for coord in lines]
+        # for doing vectorized subtraction across all line pairs,
+        # we need the first line of each pair to be the negative of itself
+        sign_op = np.ones_like(lines)
+        sign_op[:, :, 0] *= -1
+
+        # get the differences between x and y coordinates (start, end), respectively
+        slopes = np.sum(sign_op * lines, axis=2)
+
+        # compute the slopes of each line for every line pair
+        slopes = slopes[:, :, 0] / slopes[:, :, 1]
+
+        # turn infinite values to a finite, but very large value
+        slopes[np.isinf(slopes)] = 1e6
+
+        # this catches cases when the line - as defined - is actually a point and the slope doesn't exist
+        slopes[np.isnan(slopes)] = 0
+
+        return slopes
 
     def line_pair(self, num_pairs):
         """
         :param num_pairs: number of line pairs to take (int)
         :return: line pairs (array)
         """
+
         idx = np.random.randint(len(self.lines), size=num_pairs * 2)
         lines = np.array(self.lines)[idx]
         return lines.reshape(num_pairs, 2, 2, 2)
@@ -128,7 +138,8 @@ class CorrectImage(object):
         :param p_mutate: (float) probability of a mutation
         :return: (numpy array with dimensions (n_pairs, 2, 2, 2)) pairs of lines with mutations
         """
-        for i in xrange(len(pairs)):
+
+        for i in range(len(pairs)):
             if p_mutate > random.random():
                 # column = np.random.randint(low=0, high=2)
                 for column in [0, 1]:
